@@ -140,25 +140,44 @@
       const repoBase = "https://raw.githack.com/linkawaken1979-alt/night-of-the-consumers-web-port/main";
       const buildUrl = repoBase + "/Build";
 
+      const remappedKeyEvents = new WeakSet();
+
       function remapAzertyKey(event) {
+        if (remappedKeyEvents.has(event)) return;
+
         const key = event.key.toLowerCase();
         let mappedKey;
 
-        if (key === "z" || event.code === "KeyZ" || event.keyCode === 90) {
+        if (key === "z" || event.keyCode === 90) {
           mappedKey = { key: "w", code: "KeyW", keyCode: 87 };
-        } else if (key === "q" || event.code === "KeyQ" || event.keyCode === 81) {
+        } else if (key === "q" || event.keyCode === 81) {
           mappedKey = { key: "a", code: "KeyA", keyCode: 65 };
         }
 
-        if (!mappedKey) return;
+        if (!mappedKey || !event.target || typeof event.target.dispatchEvent !== "function") return;
 
-        const uppercase = event.key === event.key.toUpperCase();
-        Object.defineProperties(event, {
-          key: { value: uppercase ? mappedKey.key.toUpperCase() : mappedKey.key, configurable: true },
-          code: { value: mappedKey.code, configurable: true },
-          keyCode: { value: mappedKey.keyCode, configurable: true },
-          which: { value: mappedKey.keyCode, configurable: true }
+        const mappedEvent = new KeyboardEvent(event.type, {
+          key: event.shiftKey ? mappedKey.key.toUpperCase() : mappedKey.key,
+          code: mappedKey.code,
+          location: event.location,
+          repeat: event.repeat,
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          ctrlKey: event.ctrlKey,
+          shiftKey: event.shiftKey,
+          altKey: event.altKey,
+          metaKey: event.metaKey
         });
+        Object.defineProperties(mappedEvent, {
+          keyCode: { value: mappedKey.keyCode },
+          which: { value: mappedKey.keyCode }
+        });
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        remappedKeyEvents.add(mappedEvent);
+        event.target.dispatchEvent(mappedEvent);
       }
 
       window.addEventListener("keydown", remapAzertyKey, true);
