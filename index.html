@@ -140,6 +140,30 @@
       const repoBase = "https://raw.githack.com/linkawaken1979-alt/night-of-the-consumers-web-port/main";
       const buildUrl = repoBase + "/Build";
 
+      function remapAzertyKey(event) {
+        const key = event.key.toLowerCase();
+        let mappedKey;
+
+        if (key === "z" || event.code === "KeyZ" || event.keyCode === 90) {
+          mappedKey = { key: "w", code: "KeyW", keyCode: 87 };
+        } else if (key === "q" || event.code === "KeyQ" || event.keyCode === 81) {
+          mappedKey = { key: "a", code: "KeyA", keyCode: 65 };
+        }
+
+        if (!mappedKey) return;
+
+        const uppercase = event.key === event.key.toUpperCase();
+        Object.defineProperties(event, {
+          key: { value: uppercase ? mappedKey.key.toUpperCase() : mappedKey.key, configurable: true },
+          code: { value: mappedKey.code, configurable: true },
+          keyCode: { value: mappedKey.keyCode, configurable: true },
+          which: { value: mappedKey.keyCode, configurable: true }
+        });
+      }
+
+      window.addEventListener("keydown", remapAzertyKey, true);
+      window.addEventListener("keyup", remapAzertyKey, true);
+
       (function() {
         let lastLockAttempt = 0;
         let isUserInitiated = false;
